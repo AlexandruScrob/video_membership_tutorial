@@ -1,7 +1,8 @@
+from typing import Tuple
 from email_validator import EmailNotValidError, validate_email
 
 
-def _validate_email(email):
+def _validate_email(email: str) -> Tuple[bool, str, str]:
     msg = ""
     valid = False
 
