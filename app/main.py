@@ -1,20 +1,15 @@
-import pathlib
 import db, utils
 
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from cassandra.cqlengine.management import sync_table
 
 from users.models import User
 from users.schemas import UserSignupSchema, UserLoginSchema
 
-
-BASE_DIR = pathlib.Path(__file__).resolve().parent  # app/
-TEMPLATE_DIR = BASE_DIR / "templates"
+from shortcuts import render
 
 app = FastAPI()
-templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 DB_SESSION = None
 
 
@@ -27,24 +22,29 @@ def on_startup():
 
 @app.get("/login", response_class=HTMLResponse)
 def login_get_view(request: Request):
-    return templates.TemplateResponse("auth/login.html", {"request": request})
+    session_id = request.cookies.get("session_id")
+    return render(request, "auth/login.html", {"logged_in": session_id is not None})
 
 
 @app.post("/login", response_class=HTMLResponse)
 def login_post_view(
     request: Request, email: str = Form(...), password: str = Form(...)
 ):
+
     raw_data = {"email": email, "password": password}
     data, errors = utils.valid_schema_data_or_error(raw_data, UserLoginSchema)
 
-    return templates.TemplateResponse(
-        "auth/login.html", {"request": request, "data": data, "errors": errors}
-    )
+    context = {"data": data, "errors": errors}
+
+    if len(errors) > 0:
+        return render(request, "auth/login.html", context, status_code=400)
+
+    return render(request, "auth/login.html", {"logged_in": True}, cookies=data)
 
 
 @app.get("/signup", response_class=HTMLResponse)
 def signup_get_view(request: Request):
-    return templates.TemplateResponse("auth/signup.html", {"request": request})
+    return render(request, "auth/signup.html")
 
 
 @app.post("/signup", response_class=HTMLResponse)
@@ -62,9 +62,12 @@ def signup_post_view(
 
     data, errors = utils.valid_schema_data_or_error(raw_data, UserSignupSchema)
 
-    return templates.TemplateResponse(
-        "auth/signup.html", {"request": request, "data": data, "errors": errors}
-    )
+    context = {"data": data, "errors": errors}
+
+    if len(errors) > 0:
+        return render(request, "auth/signup.html", context, status_code=400)
+
+    return render(request, "auth/signup.html", context)
 
 
 @app.get("/users")

@@ -130,4 +130,5 @@ dmypy.json
 
 # Custom ignore
 app/unencrypted
+.vscode/
 # nbs
