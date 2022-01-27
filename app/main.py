@@ -6,8 +6,9 @@ from cassandra.cqlengine.management import sync_table
 
 from users.models import User
 from users.schemas import UserSignupSchema, UserLoginSchema
+from users.decorators import login_required
 
-from shortcuts import render
+from shortcuts import render, redirect
 
 app = FastAPI()
 DB_SESSION = None
@@ -39,7 +40,7 @@ def login_post_view(
     if len(errors) > 0:
         return render(request, "auth/login.html", context, status_code=400)
 
-    return render(request, "auth/login.html", {"logged_in": True}, cookies=data)
+    return redirect("/", cookies=data)
 
 
 @app.get("/signup", response_class=HTMLResponse)
@@ -67,10 +68,22 @@ def signup_post_view(
     if len(errors) > 0:
         return render(request, "auth/signup.html", context, status_code=400)
 
-    return render(request, "auth/signup.html", context)
+    return redirect("/login")
 
 
 @app.get("/users")
 def users_list_view():
     q = User.objects.all().limit(10)
     return list(q)
+
+
+@app.get("/", response_class=HTMLResponse)
+def homepage(request: Request):
+    return render(request, "home.html")
+
+
+@app.get("/account", response_class=HTMLResponse)
+@login_required
+def homepage(request: Request):
+
+    return render(request, "account.html")
