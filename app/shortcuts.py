@@ -7,7 +7,7 @@ settings = config.get_settings()
 templates = Jinja2Templates(directory=str(settings.templates_dir))
 
 
-def redirect(path, cookies: dict = None):
+def redirect(path, cookies: dict = None, remove_session: bool = False):
     if cookies is None:
         cookies = {}
 
@@ -16,6 +16,9 @@ def redirect(path, cookies: dict = None):
     for k, v in cookies.items():
         response.set_cookie(key=k, value=v, httponly=True)
 
+    if remove_session:
+        response.set_cookie(key="session_ended", value=True, httponly=True)
+        response.delete_cookie("session_id")
     return response
 
 
@@ -39,7 +42,7 @@ def render(
             # httponly adds a small level o security
             response.set_cookie(key=k, value=v, httponly=True)
 
-    # a somwhat form of security to refresh cookies
+    # a somewhat form of security to refresh cookies
     # for key in request.cookies.keys():
     #     response.delete_cookie(key)
 

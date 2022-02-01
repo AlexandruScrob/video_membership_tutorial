@@ -33,7 +33,7 @@ def login(user_obj, expires: int = 5):
 
 
 def verify_user_id(token: str):
-    data = None
+    data = []
     verified = False
     try:
         data = jwt.decode(

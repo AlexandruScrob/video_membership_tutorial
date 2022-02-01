@@ -2,11 +2,13 @@ import db, utils
 
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from cassandra.cqlengine.management import sync_table
 
 from users.models import User
 from users.schemas import UserSignupSchema, UserLoginSchema
 from users.decorators import login_required
+from users.exceptions import LoginRequiredException
 
 from shortcuts import render, redirect
 
@@ -19,6 +21,21 @@ def on_startup():
     global DB_SESSION
     DB_SESSION = db.get_session()
     sync_table(User)
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc):
+    status_code = exc.status_code
+    template_name = "errors/404.html" if status_code == 404 else "errors/main.html"
+
+    context = {"status_code": status_code}
+
+    return render(request, template_name, context, status_code=status_code)
+
+
+@app.exception_handler(LoginRequiredException)
+async def login_exception_handler(request, exc):
+    return redirect(f"/login?next={request.url}", remove_session=True)
 
 
 @app.get("/login", response_class=HTMLResponse)
