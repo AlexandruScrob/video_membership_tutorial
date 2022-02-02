@@ -2,17 +2,20 @@ import db, utils
 
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
+from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.authentication import requires
 from cassandra.cqlengine.management import sync_table
 
 from users.models import User
 from users.schemas import UserSignupSchema, UserLoginSchema
 from users.decorators import login_required
 from users.exceptions import LoginRequiredException
-
+from users.backends import JWTCookieBackend
 from shortcuts import render, redirect
 
 app = FastAPI()
+app.add_middleware(AuthenticationMiddleware, backend=JWTCookieBackend())
 DB_SESSION = None
 
 
@@ -96,6 +99,9 @@ def users_list_view():
 
 @app.get("/", response_class=HTMLResponse)
 def homepage(request: Request):
+    if request.user.is_authenticated:
+        return render(request, "dashboard.html", {}, status_code=200)
+
     return render(request, "home.html")
 
 

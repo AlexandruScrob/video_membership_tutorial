@@ -41,7 +41,7 @@ def verify_user_id(token: str):
         )
         verified = True
     except ExpiredSignatureError as e:
-        print(e)
+        print(e, "Log out user")
     except:
         pass
 
