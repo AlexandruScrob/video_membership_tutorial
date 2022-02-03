@@ -14,8 +14,16 @@ from users.exceptions import LoginRequiredException
 from users.backends import JWTCookieBackend
 from shortcuts import render, redirect
 
+
+from videos.models import Video
+from videos.routers import router as video_router
+
+
 app = FastAPI()
 app.add_middleware(AuthenticationMiddleware, backend=JWTCookieBackend())
+app.include_router(video_router)
+
+
 DB_SESSION = None
 
 
@@ -24,6 +32,7 @@ def on_startup():
     global DB_SESSION
     DB_SESSION = db.get_session()
     sync_table(User)
+    sync_table(Video)
 
 
 @app.exception_handler(StarletteHTTPException)

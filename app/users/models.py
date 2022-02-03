@@ -1,5 +1,7 @@
 import uuid
 
+from .exceptions import InvalidEmailException, UserHasAccountException
+
 from . import validators, security
 from config import get_settings
 
@@ -17,7 +19,7 @@ class User(Model):
     password = columns.Text()
 
     def __str__(self) -> str:
-        return self.__repr()
+        return self.__repr__()
 
     def __repr__(self) -> str:
         return f"User(email={self.email}, user_id={self.user_id})"
@@ -36,17 +38,33 @@ class User(Model):
         return verified
 
     @staticmethod
-    def create_user(email: str, password: str = None):
+    def create_user(email: str, password: str = None) -> "User":
         q = User.objects.filter(email=email)
         if q.count() != 0:
-            raise Exception("User already has account.")
+            raise UserHasAccountException("User already has account.")
 
         valid, msg, email = validators._validate_email(email)
 
         if not valid:
-            raise Exception(f"Invalid email: {msg}")
+            raise InvalidEmailException(f"Invalid email: {msg}")
 
         obj = User(email=email)
         obj.set_password(password)
         obj.save()
         return obj
+
+    @staticmethod
+    def check_exists(user_id: uuid.UUID) -> bool:
+        q = User.objects.filter(user_id=user_id).allow_filtering()
+        return q.count() != 0
+
+    @staticmethod
+    def by_user_id(user_id: uuid.UUID = None):
+        if user_id is None:
+            return
+
+        q = User.objects.filter(user_id=user_id).allow_filtering()
+        if q.count() != 1:
+            return
+
+        return q.first()
