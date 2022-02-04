@@ -22,7 +22,7 @@ def authenticate(email: str, password: str):
     return user_obj
 
 
-def login(user_obj, expires: int = 5):
+def login(user_obj, expires: int = settings.session_duration):
     raw_data = {
         "user_id": str(user_obj.user_id),
         "role": "admin",

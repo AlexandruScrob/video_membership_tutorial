@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 import uuid
 
 from config import get_settings
@@ -31,6 +31,9 @@ class Video(Model):
 
     def __repr__(self) -> str:
         return f"Video(host_id={self.host_id}, host_service={self.host_service})"
+
+    def as_data(self) -> Dict[str, str]:
+        return {f"{self.host_service}_id": self.host_id}
 
     @staticmethod
     def add_video(url: str, user_id: uuid.UUID = None) -> Any:
