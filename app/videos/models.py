@@ -22,6 +22,7 @@ class Video(Model):
     host_id = columns.Text(primary_key=True)
     db_id = columns.UUID(primary_key=True, default=uuid.uuid1)
     host_service = columns.Text(default="youtube")
+    title = columns.Text()
     url = columns.Text()
     user_id = columns.UUID()
     # user_display_name
@@ -30,13 +31,17 @@ class Video(Model):
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"Video(host_id={self.host_id}, host_service={self.host_service})"
+        return f"Video(title={self.title}, host_id={self.host_id}, host_service={self.host_service})"
 
     def as_data(self) -> Dict[str, str]:
-        return {f"{self.host_service}_id": self.host_id}
+        return {f"{self.host_service}_id": self.host_id, "path": self.path}
+
+    @property
+    def path(self) -> Dict[str, str]:
+        return f"/videos/{self.host_id}"
 
     @staticmethod
-    def add_video(url: str, user_id: uuid.UUID = None) -> Any:
+    def add_video(url: str, user_id: uuid.UUID = None, **kwargs) -> Any:
         """
         Extract video_id from url
         video_id = host_id
@@ -60,7 +65,7 @@ class Video(Model):
         if q.count() != 0:
             raise VideoAlreadyAddedException("Video already added")
 
-        return Video.create(host_id=host_id, user_id=user_id, url=url)
+        return Video.create(host_id=host_id, user_id=user_id, url=url, **kwargs)
 
 
 class PrivateVideo(Video):
