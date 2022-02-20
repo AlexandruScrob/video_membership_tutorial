@@ -62,7 +62,7 @@ class Video(Model):
 
         q = Video.objects.allow_filtering().filter(
             host_id=host_id
-        )  # user_id=user_id) # one user add a specific video
+        )  # , user_id=user_id) # one user add a specific video
 
         if q.count() != 0:
             raise VideoAlreadyAddedException("Video already added")
