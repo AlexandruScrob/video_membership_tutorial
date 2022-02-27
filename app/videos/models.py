@@ -2,6 +2,7 @@ from typing import Any, Dict
 import uuid
 
 from config import get_settings
+from shortcuts import templates
 
 from cassandra.cqlengine import columns
 from cassandra.cqlengine.models import Model
@@ -32,6 +33,14 @@ class Video(Model):
 
     def __repr__(self) -> str:
         return f"Video(title={self.title}, host_id={self.host_id}, host_service={self.host_service})"
+
+    def render(self):
+        basename = self.host_service  # youtube, vimeo
+        template_name = f"videos/renderers/{basename}.html"
+        context = {"host_id": self.host_id}
+        t = templates.get_template(template_name)
+
+        return t.render(context)
 
     def as_data(self) -> Dict[str, str]:
         return {f"{self.host_service}_id": self.host_id, "path": self.path}

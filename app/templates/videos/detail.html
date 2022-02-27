@@ -6,4 +6,37 @@
 {{ host_id }}
 {{ object }}
 
+<div id="'yt-video"></div>
+<div>
+    <code>{{ object.render() }}</code>
+</div>
+
+<script>
+    var youtubeVideoDiv = document.getElementById('yt-video')
+    function onYouTubeIfframeAPIReady() {
+        // console.log("hello world");
+        new YT.Player('yt-video', {
+            height: '390',
+            width: '640',
+            videoId: '{{ host_id }}',
+            playerVars: {
+                'modestbranding': 1,
+                'autoplay': 1,
+                'start': 0,
+                'playsinline': 1,
+                'controls': 1,
+            },
+            events: {
+                onReady: onPlayerReady,
+            }
+        })
+    };
+
+    function onPlayerReady(event) {
+        event.target.playVideo()
+        console.log(event)
+        console.log("player is ready")
+    }
+</script>
+
 {% endblock %}
